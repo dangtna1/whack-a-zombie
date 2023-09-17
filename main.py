@@ -43,21 +43,23 @@ class Game:
         # score
         score_string = "SCORE: " + str(self.PLAYER_SCORE)
         score_text = pygame.font.Font(None, 30).render(
-            score_string, True, (0, 0, 0))
+            score_string, True, (255, 0, 0))
         score_text_pos = score_text.get_rect()
         score_text_pos.centerx = self.SCREEN_WIDTH / 15 * 1
         score_text_pos.centery = 20
         self.screen.blit(score_text, score_text_pos)
+
         # misses
         misses_string = "MISSES: " + str(self.PLAYER_MISSES)
         misses_text = pygame.font.Font(None, 30).render(
-            misses_string, True, (0, 0, 0))
+            misses_string, True, (255, 0, 0))
         misses_text_pos = misses_text.get_rect()
         misses_text_pos.centerx = self.SCREEN_WIDTH / 15 * 1
         misses_text_pos.centery = 50
         self.screen.blit(misses_text, misses_text_pos)
 
     def start(self):
+        # Initialize the map and scores and misses
         self.screen.blit(self.background, (0, 0))
         self.update()
 
@@ -65,7 +67,7 @@ class Game:
         hole_index = random.randint(0, 4)
         cycle_time = 0
 
-        first_hit = True
+        first_hit = True # to prevent users hit a random head more than one time and score them
 
         # Sound effects
         self.sound = Sound()
@@ -81,7 +83,6 @@ class Game:
                         self.sound.playZombiePainSound()
                         first_hit = False
                         self.PLAYER_SCORE += 1
-                        # self.sound.stopHitSound()
                         self.update()
                     else:
                         self.PLAYER_MISSES += 1
@@ -92,10 +93,10 @@ class Game:
             cycle_time += sec
 
             if cycle_time >= 1:
-                first_hit = True
                 self.screen.blit(self.background, (0, 0))
                 hole_index = random.randint(0, 4)
                 self.screen.blit(self.zombie, self.hole_positions[hole_index])
+                first_hit = True
                 self.update()
                 cycle_time = 0
 
