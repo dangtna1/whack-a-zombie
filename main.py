@@ -1,15 +1,15 @@
 import pygame
-import random
 from pygame import *
+import random
 
 
 class Game:
     def __init__(self):
-        self.SCREEN_WIDTH = 860
-        self.SCREEN_HEIGHT = 506
+        self.SCREEN_WIDTH = 813
+        self.SCREEN_HEIGHT = 750
 
-        self.ZOMBIE_WIDTH = 80
-        self.ZOMBIE_HEIGHT = 90
+        self.ZOMBIE_WIDTH = 85
+        self.ZOMBIE_HEIGHT = 80
 
         self.FPS = 60
 
@@ -20,16 +20,25 @@ class Game:
         self.screen = pygame.display.set_mode(
             (self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         pygame.display.set_caption("Whack A Zombie")
-        self.background = pygame.image.load("assets/holesbackground.png")
-        self.zombie = pygame.image.load("assets/zombiehead.png")
+        self.background = pygame.image.load("assets/zombie-map.jpg")
+        self.zombiehit = pygame.image.load("assets/zombieheadhit.png")
+        self.zombie_sheet = pygame.image.load("assets/zombieee.png")
+        self.zombies = []
+        self.zombies.append(self.zombie_sheet.subsurface(
+            227, 24, 93, 90))  # frame 1
+        self.zombies.append(self.zombie_sheet.subsurface(
+            112, 24, 102, 90))  # frame 2
+        self.zombies.append(
+            self.zombie_sheet.subsurface(7, 24, 93, 90))  # frame 3
 
         # positions of the holes in the background
         self.hole_positions = []
-        self.hole_positions.append((215, 40))
-        self.hole_positions.append((540, -25))
-        self.hole_positions.append((445, 150))
-        self.hole_positions.append((195, 300))
-        self.hole_positions.append((525, 320))
+        self.hole_positions.append((635, 54))
+        self.hole_positions.append((427, 180))
+        self.hole_positions.append((427, 305))
+        self.hole_positions.append((533, 430))
+        self.hole_positions.append((320, 554))
+        self.hole_positions.append((637, 554))
 
     # function to check if the player hit the zombie head successfully
     def is_zombie_hit(self, mouse_position, current_hole_position):
@@ -42,20 +51,20 @@ class Game:
     def update(self):
         # score
         score_string = "SCORE: " + str(self.PLAYER_SCORE)
-        score_text = pygame.font.Font(None, 30).render(
-            score_string, True, (255, 0, 0))
+        score_text = pygame.font.Font(None, 50).render(
+            score_string, True, (0, 0, 0))
         score_text_pos = score_text.get_rect()
-        score_text_pos.centerx = self.SCREEN_WIDTH / 15 * 1
-        score_text_pos.centery = 20
+        score_text_pos.centerx = self.SCREEN_WIDTH / 8 * 1
+        score_text_pos.centery = 50
         self.screen.blit(score_text, score_text_pos)
 
         # misses
         misses_string = "MISSES: " + str(self.PLAYER_MISSES)
-        misses_text = pygame.font.Font(None, 30).render(
-            misses_string, True, (255, 0, 0))
+        misses_text = pygame.font.Font(None, 50).render(
+            misses_string, True, (0, 0, 0))
         misses_text_pos = misses_text.get_rect()
-        misses_text_pos.centerx = self.SCREEN_WIDTH / 15 * 1
-        misses_text_pos.centery = 50
+        misses_text_pos.centerx = self.SCREEN_WIDTH / 8 * 1
+        misses_text_pos.centery = 100
         self.screen.blit(misses_text, misses_text_pos)
 
     def start(self):
@@ -66,8 +75,10 @@ class Game:
         run = True
         hole_index = random.randint(0, 4)
         cycle_time = 0
-
-        first_hit = True # to prevent users hit a random head more than one time and score them
+        frame_num = 0
+        interval = 0.5  # interval between frames
+        hitable = False # users can only hit when the zombie appear completely
+        first_hit = True # to prevent users hit the same head more than one time and score them
 
         # Sound effects
         self.sound = Sound()
@@ -79,10 +90,13 @@ class Game:
 
                 if event.type == MOUSEBUTTONDOWN and event.button == 1:  # left mouse button
                     self.sound.playHitSound()
-                    if self.is_zombie_hit(mouse.get_pos(), self.hole_positions[hole_index]) and first_hit == True:
+                    if self.is_zombie_hit(mouse.get_pos(), self.hole_positions[hole_index]) and first_hit and hitable:
                         self.sound.playZombiePainSound()
                         first_hit = False
                         self.PLAYER_SCORE += 1
+                        self.screen.blit(self.background, (0, 0))
+                        self.screen.blit(
+                            self.zombiehit, (self.hole_positions[hole_index][0] - 15, self.hole_positions[hole_index][1]))
                         self.update()
                     else:
                         self.PLAYER_MISSES += 1
@@ -92,10 +106,29 @@ class Game:
             sec = mil / 1000.0
             cycle_time += sec
 
-            if cycle_time >= 1:
+            if cycle_time >= interval:
                 self.screen.blit(self.background, (0, 0))
-                hole_index = random.randint(0, 4)
-                self.screen.blit(self.zombie, self.hole_positions[hole_index])
+
+                if (frame_num == 0):
+                    hole_index = random.randint(0, 5)
+                    self.screen.blit(
+                        self.zombies[0], self.hole_positions[hole_index])
+                    hitable = False
+                    frame_num += 1
+                    interval = 0.2
+                elif (frame_num == 1):
+                    self.screen.blit(
+                        self.zombies[1], self.hole_positions[hole_index])
+                    hitable = False
+                    frame_num += 1
+                    interval = 0.2
+                else:
+                    self.screen.blit(
+                        self.zombies[2], self.hole_positions[hole_index])
+                    hitable = True
+                    frame_num = 0  # reset frame_num
+                    interval = 0.5
+
                 first_hit = True
                 self.update()
                 cycle_time = 0
